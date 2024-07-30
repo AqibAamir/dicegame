@@ -5,8 +5,19 @@ import csv
 # Create a list of authorized players
 authorized_players = ["Player 1", "Player 2"]
 
+# Function to register new players
+def register_player():
+    new_player = input("Enter the new player's name to register: ")
+    if new_player not in authorized_players:
+        authorized_players.append(new_player)
+        print(f"{new_player} has been registered successfully.")
+    else:
+        print(f"{new_player} is already registered.")
+    return authorized_players
+
 # Function to get player names and check authorization
 def get_players():
+    print("Authorized players:", ", ".join(authorized_players))
     player1 = input("Player 1, enter your name: ")
     player2 = input("Player 2, enter your name: ")
     if player1 not in authorized_players or player2 not in authorized_players:
@@ -63,7 +74,7 @@ def tie_breaker(player1, player2, scores):
         scores[player1] += player1_die
         scores[player2] += player2_die
 
-print(f"{player1}: {player1_die} points")
+        print(f"{player1}: {player1_die} points")
         print(f"{player2}: {player2_die} points")
         print(f"{player1}'s total score: {scores[player1]}")
         print(f"{player2}'s total score: {scores[player2]}\n")
@@ -78,38 +89,59 @@ def save_and_display_winner(scores):
         writer = csv.writer(file)
         writer.writerow([winner, scores[winner]])
 
-    with open("top_scores.csv", "r") as file:
-        reader = csv.reader(file)
-        top_scores = sorted(reader, key=lambda row: int(row[1]), reverse=True)[:5]
-        print("Top 5 winning scores:")
-        for score in top_scores:
-            print(f"{score[0]}: {score[1]}")
+    display_top_scores()
+
+# Function to display top scores
+def display_top_scores():
+    if os.path.exists("top_scores.csv"):
+        with open("top_scores.csv", "r") as file:
+            reader = csv.reader(file)
+            top_scores = sorted(reader, key=lambda row: int(row[1]), reverse=True)[:5]
+            print("Top 5 winning scores:")
+            for score in top_scores:
+                print(f"{score[0]}: {score[1]}")
+
+# Function to display score history
+def display_score_history():
+    if os.path.exists("top_scores.csv"):
+        with open("top_scores.csv", "r") as file:
+            reader = csv.reader(file)
+            print("Score History:")
+            for row in reader:
+                print(f"{row[0]}: {row[1]} points")
+
+# Function to set game settings
+def set_game_settings():
+    num_rounds = int(input("Enter the number of rounds to play: "))
+    return num_rounds
 
 # Main game loop
 def main():
-    player1, player2 = get_players()
-    scores = {player1: 0, player2: 0}
+    while True:
+        action = input("Enter 'play' to play, 'register' to register a new player, 'history' to view score history, 'quit' to quit: ").lower()
+        if action == 'play':
+            player1, player2 = get_players()
+            scores = {player1: 0, player2: 0}
+            num_rounds = set_game_settings()
 
-    for round in range(5):
-        player1_score, player2_score = play_round(player1, player2)
-        scores = update_scores(player1, player2, scores, player1_score, player2_score)
-        display_scores(round, player1, player2, player1_score, player2_score, scores)
+            for round in range(num_rounds):
+                player1_score, player2_score = play_round(player1, player2)
+                scores = update_scores(player1, player2, scores, player1_score, player2_score)
+                display_scores(round, player1, player2, player1_score, player2_score, scores)
 
-    scores = tie_breaker(player1, player2, scores)
-    save_and_display_winner(scores)
+            scores = tie_breaker(player1, player2, scores)
+            save_and_display_winner(scores)
 
-    while input("Do you want to play again? (yes/no) ").lower() == "yes":
-        player1, player2 = get_players()
-        scores = {player1: 0, player2: 0}
-        for round in range(5):
-            player1_score, player2_score = play_round(player1, player2)
-            scores = update_scores(player1, player2, scores, player1_score, player2_score)
-            display_scores(round, player1, player2, player1_score, player2_score, scores)
-        scores = tie_breaker(player1, player2, scores)
-        save_and_display_winner(scores)
+            if input("Do you want to play again? (yes/no) ").lower() != "yes":
+                break
+        elif action == 'register':
+            register_player()
+        elif action == 'history':
+            display_score_history()
+        elif action == 'quit':
+            break
+        else:
+            print("Invalid action. Please try again.")
 
 if __name__ == "__main__":
     main()
-
-
-
