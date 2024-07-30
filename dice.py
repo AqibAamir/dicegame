@@ -143,5 +143,96 @@ def main():
         else:
             print("Invalid action. Please try again.")
 
+# Function to save player profiles
+def save_player_profiles():
+    with open("player_profiles.csv", "w", newline='') as file:
+        writer = csv.writer(file)
+        for player in authorized_players:
+            writer.writerow([player])
+    print("Player profiles saved successfully.")
+
+# Function to load player profiles
+def load_player_profiles():
+    if os.path.exists("player_profiles.csv"):
+        with open("player_profiles.csv", "r") as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if row[0] not in authorized_players:
+                    authorized_players.append(row[0])
+        print("Player profiles loaded successfully.")
+    else:
+        print("No player profiles found. Starting with default players.")
+
+# Function to play a bonus round
+def play_bonus_round(player1, player2, scores):
+    print("Bonus round!")
+    player1_bonus = random.randint(1, 10)
+    player2_bonus = random.randint(1, 10)
+    scores[player1] += player1_bonus
+    scores[player2] += player2_bonus
+    print(f"{player1} earned {player1_bonus} bonus points.")
+    print(f"{player2} earned {player2_bonus} bonus points.")
+    return scores
+
+# Function to handle invalid input
+def get_valid_input(prompt, valid_options):
+    while True:
+        response = input(prompt).lower()
+        if response in valid_options:
+            return response
+        else:
+            print(f"Invalid input. Please choose from: {', '.join(valid_options)}")
+
+# Function to manage player profiles
+def manage_profiles():
+    while True:
+        action = get_valid_input("Enter 'view' to view profiles, 'add' to add a profile, 'remove' to remove a profile, 'back' to go back: ", ['view', 'add', 'remove', 'back'])
+        if action == 'view':
+            print("Authorized players:", ", ".join(authorized_players))
+        elif action == 'add':
+            register_player()
+        elif action == 'remove':
+            player_to_remove = input("Enter the name of the player to remove: ")
+            if player_to_remove in authorized_players:
+                authorized_players.remove(player_to_remove)
+                print(f"{player_to_remove} has been removed.")
+            else:
+                print("Player not found.")
+        elif action == 'back':
+            break
+
+# Enhanced main game loop
+def main():
+    load_player_profiles()
+    while True:
+        action = get_valid_input("Enter 'play' to play, 'profiles' to manage profiles, 'history' to view score history, 'quit' to quit: ", ['play', 'profiles', 'history', 'quit'])
+        if action == 'play':
+            player1, player2 = get_players()
+            scores = {player1: 0, player2: 0}
+            num_rounds = set_game_settings()
+
+            for round in range(num_rounds):
+                player1_score, player2_score = play_round(player1, player2)
+                scores = update_scores(player1, player2, scores, player1_score, player2_score)
+                display_scores(round, player1, player2, player1_score, player2_score, scores)
+                
+                if round == num_rounds - 1:
+                    scores = play_bonus_round(player1, player2, scores)
+
+            scores = tie_breaker(player1, player2, scores)
+            save_and_display_winner(scores)
+
+            if get_valid_input("Do you want to play again? (yes/no) ", ['yes', 'no']) != "yes":
+                break
+        elif action == 'profiles':
+            manage_profiles()
+        elif action == 'history':
+            display_score_history()
+        elif action == 'quit':
+            save_player_profiles()
+            break
+
+
+
 if __name__ == "__main__":
     main()
