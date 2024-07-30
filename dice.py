@@ -63,5 +63,53 @@ def tie_breaker(player1, player2, scores):
         scores[player1] += player1_die
         scores[player2] += player2_die
 
+print(f"{player1}: {player1_die} points")
+        print(f"{player2}: {player2_die} points")
+        print(f"{player1}'s total score: {scores[player1]}")
+        print(f"{player2}'s total score: {scores[player2]}\n")
+    return scores
+
+# Function to determine winner and save scores
+def save_and_display_winner(scores):
+    winner = max(scores, key=lambda player: scores[player])
+    print(f"The winner is {winner} with a score of {scores[winner]}!")
+
+    with open("top_scores.csv", "a", newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([winner, scores[winner]])
+
+    with open("top_scores.csv", "r") as file:
+        reader = csv.reader(file)
+        top_scores = sorted(reader, key=lambda row: int(row[1]), reverse=True)[:5]
+        print("Top 5 winning scores:")
+        for score in top_scores:
+            print(f"{score[0]}: {score[1]}")
+
+# Main game loop
+def main():
+    player1, player2 = get_players()
+    scores = {player1: 0, player2: 0}
+
+    for round in range(5):
+        player1_score, player2_score = play_round(player1, player2)
+        scores = update_scores(player1, player2, scores, player1_score, player2_score)
+        display_scores(round, player1, player2, player1_score, player2_score, scores)
+
+    scores = tie_breaker(player1, player2, scores)
+    save_and_display_winner(scores)
+
+    while input("Do you want to play again? (yes/no) ").lower() == "yes":
+        player1, player2 = get_players()
+        scores = {player1: 0, player2: 0}
+        for round in range(5):
+            player1_score, player2_score = play_round(player1, player2)
+            scores = update_scores(player1, player2, scores, player1_score, player2_score)
+            display_scores(round, player1, player2, player1_score, player2_score, scores)
+        scores = tie_breaker(player1, player2, scores)
+        save_and_display_winner(scores)
+
+if __name__ == "__main__":
+    main()
+
 
 
